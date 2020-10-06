@@ -1,0 +1,15 @@
+name: "Changelog Generator"
+description: "Create a changelog based on commits since last tag"
+author: "Willem Engel"
+inputs:
+  title:
+    required: false
+    description: "Optional title of the changelog"
+outputs:
+  version:
+    description: "The current version"
+  message:
+    description: "Markdown string with changelog since previous version"
+runs:
+  using: "node12"
+  main: "dist/index.js"
