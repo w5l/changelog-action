@@ -11,5 +11,7 @@ jobs:
         uses: actions/checkout@master
       - name: Update changelog
         uses: ./
+        with:
+          updateRelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

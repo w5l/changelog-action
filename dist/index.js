@@ -2539,9 +2539,9 @@ function getDateRange(octokit, repo, release) {
         // PR/Issues on the "after" time, and to include those on the "before" time.
         // One second still sometimes isn't enough, but 1001ms seems to work reliably.
         const addSec = (date) => new Date(new Date(date).getTime() + 1001).toISOString();
-        // The field `created_at` contains the date of the commit that is released, which is what we
-        // want, Don't use the date of the release, it can be made at another time.
         if (release) {
+            // The field `created_at` contains the date of the commit that is released, which is what we
+            // want, Don't use the date of the release, it can be made at another time.
             const currentDate = new Date(release.created_at);
             // TODO: Big assumption using page size `20` but works for us.
             const release2 = (yield octokit.repos.listReleases({ owner: repo.owner, repo: repo.repo, per_page: 20 })).data
@@ -2549,11 +2549,11 @@ function getDateRange(octokit, repo, release) {
                 .filter(r => !r.draft && !r.prerelease && new Date(r.created_at) < currentDate)
                 // Order by tagname and take the one with the highest tag.
                 .sort((a, b) => a.tag_name > b.tag_name ? -1 : 1)[0];
-            core.info(`Current commit is latest release, using all data between ${release2.tag_name} and ${release.tag_name}.`);
+            core.info(`Current release is ${release.tag_name}, using all data since ${release2.tag_name}.`);
             return `${addSec(release2.created_at)}..${addSec(release.created_at)}`;
         }
         release = (yield octokit.repos.getLatestRelease(repo)).data;
-        core.info(`Current commit is not released yet, using all data since ${release.tag_name}.`);
+        core.info(`No current release, using all data since ${release.tag_name}.`);
         return `${addSec(release.created_at)}..*`;
     });
 }
@@ -5430,16 +5430,21 @@ function run() {
             const data = yield core.group('Getting data for changelog', () => getChangesetData_1.getChangesetData(octokit, github_1.context.repo, release));
             const message = yield core.group('Creating changelog message', () => __awaiter(this, void 0, void 0, function* () { return generateChangelog_1.generateChangelog(core.getInput('title'), data); }));
             core.setOutput('message', message);
-            // if (release !== null) {
-            //   await core.group('Updating current release body', async () => {
-            //     await octokit.repos.updateRelease({
-            //       owner: context.repo.owner,
-            //       repo: context.repo.repo,
-            //       release_id: release!.id,
-            //       body: message
-            //     });
-            //   });
-            // }
+            if (core.getInput('updateRelease')) {
+                yield core.group('Updating current release', () => __awaiter(this, void 0, void 0, function* () {
+                    if (release !== null) {
+                        yield octokit.repos.updateRelease({
+                            owner: github_1.context.repo.owner,
+                            repo: github_1.context.repo.repo,
+                            release_id: release.id,
+                            body: message
+                        });
+                    }
+                    else {
+                        core.warning('`updateRelease` is set, but action is not triggered by a release.');
+                    }
+                }));
+            }
         }
         catch (error) {
             core.setFailed(error.message);

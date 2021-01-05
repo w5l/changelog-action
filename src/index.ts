@@ -19,7 +19,20 @@ async function run(): Promise<void> {
     const message = await core.group('Creating changelog message', async () => generateChangelog(core.getInput('title'), data));
     core.setOutput('message', message);
 
-
+    if (core.getInput('updateRelease')) {
+      await core.group('Updating current release', async () => {
+        if (release !== null) {
+          await octokit.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: release.id,
+            body: message
+          });
+        } else {
+          core.warning('`updateRelease` is set, but action is not triggered by a release.');
+        }
+      });
+    }
   }
   catch (error) {
     core.setFailed(error.message);
