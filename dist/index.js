@@ -5433,7 +5433,7 @@ const getOctokit_1 = __webpack_require__(280);
 const generateChangelog_1 = __webpack_require__(937);
 const getChangesetData_1 = __webpack_require__(410);
 function run() {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const release = github_1.context.eventName === 'release' ? (_a = github_1.context.payload) === null || _a === void 0 ? void 0 : _a.release :
@@ -5442,7 +5442,7 @@ function run() {
             const data = yield core.group('Getting data for changelog', () => getChangesetData_1.getChangesetData(octokit, github_1.context.repo, release));
             const message = yield core.group('Creating changelog message', () => __awaiter(this, void 0, void 0, function* () { return generateChangelog_1.generateChangelog(core.getInput('title'), data); }));
             core.setOutput('message', message);
-            if (core.getInput('update_release')) {
+            if (((_b = core.getInput('update_release')) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true') {
                 yield core.group('Updating current release', () => __awaiter(this, void 0, void 0, function* () {
                     if (release !== null) {
                         core.info(`Set body for ${release.name} to ${message}`);

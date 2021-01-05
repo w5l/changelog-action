@@ -5,7 +5,6 @@ inputs:
   update_release:
     description: If the workflow is triggered by a release, immedialy update the release changelog
     required: false
-    default: false
   title:
     required: false
     description: Optional title of the changelog
