@@ -1,0 +1,15 @@
+name: Update release with changelog
+on:
+  release:
+    types: [published, created, prereleased, released]
+
+jobs:
+  update-release-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Update changelog
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

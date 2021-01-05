@@ -1,5 +1,5 @@
 name: "Changelog Generator"
-description: "Create a changelog based on commits since last tag"
+description: "Create a changelog based on pull requests since last release"
 author: "Willem Engel"
 inputs:
   title:

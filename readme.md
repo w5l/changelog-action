@@ -31,6 +31,8 @@ Include the changelog action anywhere after the checkout action.
 - name: Generate changelog
   id: changelog
   uses: willemduncan/changelog-action@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 The generated message is stored in the output variable named `message`.
