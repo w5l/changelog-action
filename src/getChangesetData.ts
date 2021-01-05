@@ -50,21 +50,34 @@ async function getDateRange(
   // One second still sometimes isn't enough, but 1001ms seems to work reliably.
   const addSec = (date: string) => new Date(new Date(date).getTime() + 1001).toISOString();
 
+  // If there is a current release, search relative to that.
   if (release) {
     // The field `created_at` contains the date of the commit that is released, which is what we
     // want, Don't use the date of the release, it can be made at another time.
     const currentDate = new Date(release.created_at);
     // TODO: Big assumption using page size `20` but works for us.
-    const release2 = (await octokit.repos.listReleases({ owner: repo.owner, repo: repo.repo, per_page: 20 })).data
+    const previousRelease = (await octokit.repos.listReleases({ owner: repo.owner, repo: repo.repo, per_page: 20 })).data
       // Filter all published non-prerelease done before current release.
       .filter(r => !r.draft && !r.prerelease && new Date(r.created_at) < currentDate)
       // Order by tagname and take the one with the highest tag.
       .sort((a, b) => a.tag_name > b.tag_name ? -1 : 1)[0];
-    core.info(`Current release is ${release.tag_name}, using all data since ${release2.tag_name}.`);
-    return `${addSec(release2.created_at)}..${addSec(release.created_at)}`;
+
+    if (previousRelease) {
+      core.info(`Current release is ${release.tag_name}, using all data since previous release ${previousRelease.tag_name}.`);
+      return `${addSec(previousRelease.created_at)}..${addSec(release.created_at)}`;
+    } else {
+      core.info(`Current release is ${release.tag_name}, no earlier releases, using all data since beginning of time up to ${release.tag_name}.`);
+      return `*..${addSec(release.created_at)}`;
+    }
   }
 
-  release = (await octokit.repos.getLatestRelease(repo)).data;
-  core.info(`No current release, using all data since ${release.tag_name}.`);
-  return `${addSec(release.created_at)}..*`;
+  core.info(`Getting latest release.`);
+  try {
+    release = (await octokit.repos.getLatestRelease(repo)).data;
+    core.info(`No current release, using all data since previous release ${release.tag_name}.`);
+    return `${addSec(release.created_at)}..*`;
+  } catch {
+    core.info(`No releases at all, using all data since beginning of time.`);
+    return `*..*`;
+  }
 }
