@@ -16,7 +16,7 @@ async function run(): Promise<void> {
     const message = await core.group('Creating changelog message', async () => generateChangelog(core.getInput('title'), data));
     core.setOutput('message', message);
 
-    if (core.getInput('update_release')) {
+    if (core.getInput('update_release')?.toLowerCase() === 'true') {
       await core.group('Updating current release', async () => {
         if (release !== null) {
           core.info(`Set body for ${release.name} to ${message}`);
