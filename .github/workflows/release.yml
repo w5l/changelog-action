@@ -1,7 +1,7 @@
 name: Update release with changelog
 on:
   release:
-    types: [published, created, prereleased, released]
+    types: [created]
 
 jobs:
   update-release-body:
@@ -11,5 +11,7 @@ jobs:
         uses: actions/checkout@master
       - name: Update changelog
         uses: ./
+        with:
+          update_release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

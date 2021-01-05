@@ -1,15 +1,19 @@
-name: "Changelog Generator"
-description: "Create a changelog based on pull requests since last release"
-author: "Willem Engel"
+name: Changelog Generator
+description: Create a changelog based on pull requests since last release
+author: Willem Engel
 inputs:
+  update_release:
+    description: If the workflow is triggered by a release, immedialy update the release changelog
+    required: false
+    default: false
   title:
     required: false
-    description: "Optional title of the changelog"
+    description: Optional title of the changelog
 outputs:
   version:
-    description: "The current version"
+    description: The current version
   message:
-    description: "Markdown string with changelog since previous version"
+    description: Markdown string with changelog since previous version
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: node12
+  main: dist/index.js
