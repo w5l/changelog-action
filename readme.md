@@ -25,10 +25,11 @@ Currently mapped prefixes:
 
 ### Available options
 
-| Name             | Description                                                                                             |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| `title`          | Optional title to use as a heading above the changelog. If not specified, the changelog has no heading. |
-| `update_release` | When set to `true`, will update the current release with the generated release notes. Default `false`.  |
+| Name                  | Description                                                                                                                       |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `update_release`      | When set to `true`, will update the current release with the generated release notes. Default `false`.                            |
+| `title`               | Title to use as a heading above the changelog. If not specified, the changelog has no heading.                                    |
+| `other_section_title` | Title to use as heading for section containing all pull requests not in other sections. If not specified, they are not displayed. |
 
 ### Generate a changelog message
 
