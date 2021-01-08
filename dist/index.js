@@ -2524,7 +2524,7 @@ function getChangesetData(octokit, repo, release) {
       }
     }
   }`);
-        core.info(`Found ${prSearch.search.nodes.length} issues within range.`);
+        core.info(`Found ${prSearch.search.nodes.length} pulls within range:`);
         prSearch.search.nodes.forEach(item => {
             core.info(`- ${item.title} (${item.number}).`);
         });
@@ -4771,6 +4771,63 @@ exports.FetchError = FetchError;
 
 /***/ }),
 
+/***/ 499:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateChangelogMessage = void 0;
+const core = __importStar(__webpack_require__(186));
+/**
+ * Generate change log message.
+ * @param title Optional title.
+ * @param pulls Collection of issues to use for changelog.
+ */
+function generateChangelogMessage(changelog) {
+    core.info(`Create changelog with ${changelog.sections.length} sections.`);
+    let r = changelog.title ? `# ${changelog.title}\n` : "";
+    changelog.sections.forEach(s => r += renderSection(s));
+    return r.trim();
+}
+exports.generateChangelogMessage = generateChangelogMessage;
+/**
+ * Create a changelog section string.
+ * @param section The section data.
+ */
+function renderSection(section) {
+    let r = "\n";
+    if (section.title) {
+        r += `## ${section.title}\n`;
+    }
+    for (const item of section.items) {
+        r += `- ${item.title} (#${item.item.number})\n`;
+    }
+    return r;
+}
+
+
+/***/ }),
+
 /***/ 537:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -5430,20 +5487,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(186));
 const github_1 = __webpack_require__(438);
 const getOctokit_1 = __webpack_require__(280);
-const generateChangelog_1 = __webpack_require__(937);
+const generateChangelogMessage_1 = __webpack_require__(499);
 const getChangesetData_1 = __webpack_require__(410);
+const createChangelog_1 = __webpack_require__(936);
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const release = github_1.context.eventName === 'release' ? (_a = github_1.context.payload) === null || _a === void 0 ? void 0 : _a.release :
                 null;
+            const config = {
+                title: core.getInput("title"),
+                sections: [
+                    { title: "Features", prefixes: ["feat", "feature"] },
+                    { title: "Fixes", prefixes: ["fix", "fixes", "fixed", "bug"] },
+                ],
+                otherSectionTitle: core.getInput("other_section_title")
+            };
             const octokit = getOctokit_1.getOctokit();
-            const data = yield core.group('Getting data for changelog', () => getChangesetData_1.getChangesetData(octokit, github_1.context.repo, release));
-            const message = yield core.group('Creating changelog message', () => __awaiter(this, void 0, void 0, function* () { return generateChangelog_1.generateChangelog(core.getInput('title'), data); }));
+            const data = yield core.group('Get data for changelog', () => getChangesetData_1.getChangesetData(octokit, github_1.context.repo, release));
+            const changelog = yield core.group('Create changelog', () => __awaiter(this, void 0, void 0, function* () { return createChangelog_1.createChangelog(data, config); }));
+            const message = yield core.group('Generate changelog message', () => __awaiter(this, void 0, void 0, function* () { return generateChangelogMessage_1.generateChangelogMessage(changelog); }));
             core.setOutput('message', message);
             if (((_b = core.getInput('update_release')) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'true') {
-                yield core.group('Updating current release', () => __awaiter(this, void 0, void 0, function* () {
+                yield core.group('Update current release', () => __awaiter(this, void 0, void 0, function* () {
                     if (release !== null) {
                         core.info(`Set body for ${release.name} to ${message}`);
                         yield octokit.repos.updateRelease({
@@ -5454,7 +5521,7 @@ function run() {
                         });
                     }
                     else {
-                        core.warning('`update_release` is set, but action is not triggered by a release.');
+                        core.warning('The `update_release` flag is set, but action is not triggered by a release event. Nothing to do.');
                     }
                 }));
             }
@@ -6106,7 +6173,7 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 937:
+/***/ 936:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -6131,30 +6198,44 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateChangelog = void 0;
+exports.createChangelog = void 0;
 const core = __importStar(__webpack_require__(186));
 /**
- * Generate change log message.
- * @param title Optional title.
- * @param pulls Collection of issues to use for changelog.
+ * Create a changelog model from a collection of issues.
+ * @param items The items to use as base collection.
  */
-function generateChangelog(title, pulls) {
-    core.info(`Create changelog for ${pulls.length} items.`);
-    const features = getGroupByPrefix(pulls, ["feat", "feature"]);
-    const fixes = getGroupByPrefix(pulls, ["fix", "fixes", "fixed", "bug"]);
-    let r = title ? `# ${title}\n` : "";
-    r += renderSection("Features", features);
-    r += renderSection("Fixes", fixes);
-    return r.trim();
+function createChangelog(items, config) {
+    core.info(`Create changelog for ${items.length} items.`);
+    const result = {
+        title: config.title,
+        sections: []
+    };
+    const addSection = (title, items) => {
+        core.info(`Create changelog section '${title}' with ${items.length} items.`);
+        if (items.length > 0) {
+            result.sections.push({ title, items });
+        }
+    };
+    config.sections.forEach(s => addSection(s.title, getItemsByPrefix(items, s.prefixes)));
+    if (config.otherSectionTitle) {
+        // Take all items except those already in a section.
+        addSection(config.otherSectionTitle, items
+            .filter(i => !result.sections.some(s => s.items.some(si => si.item === i)))
+            .map(i => ({
+            title: i.title,
+            item: i
+        })));
+    }
+    return result;
 }
-exports.generateChangelog = generateChangelog;
+exports.createChangelog = createChangelog;
 /**
- * Filter and sort a collection of issues.
+ * Filter a collection of issues.
  * @param items The items to filter.
  * @param prefixes The prefixes to filter.
  */
-function getGroupByPrefix(items, prefixes) {
-    const regex = new RegExp(`^(${prefixes.join("|")})?:?\\s+`, "i");
+function getItemsByPrefix(items, prefixes) {
+    const regex = new RegExp(`^(${prefixes.join('|')})?:?\\s+`, 'i');
     return items
         // Match with allowed prefixes
         .map(item => ({
@@ -6163,31 +6244,11 @@ function getGroupByPrefix(items, prefixes) {
     }))
         // Filter by positive matches.
         .filter(item => item.match)
-        // Strip prefix from title.
-        .map(item => {
-        item.data.title = item.data.title.substring(item.match[0].length);
-        return item.data;
-    })
-        // Sort by issue number ascending.
-        .sort((a, b) => a.number > b.number ? 1 : -1);
-}
-/**
- * Create a changelog section string if items isn't empty.
- * @param title The section title.
- * @param items The items for this section.
- */
-function renderSection(title, items) {
-    if (!(items === null || items === void 0 ? void 0 : items.length)) {
-        return "";
-    }
-    let r = "\n";
-    if (title) {
-        r += `## ${title}\n`;
-    }
-    for (const item of items) {
-        r += `- ${item.title} (#${item.number})\n`;
-    }
-    return r;
+        // Create title without filtered prefix.
+        .map(item => ({
+        title: item.data.title.substring(item.match[0].length),
+        item: item.data
+    }));
 }
 
 

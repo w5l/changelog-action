@@ -8,6 +8,9 @@ inputs:
   title:
     required: false
     description: Optional title of the changelog
+  other_section_title:
+    required: false
+    description: Optional title for the section containing all non-prefixed pull requests
 outputs:
   version:
     description: The current version

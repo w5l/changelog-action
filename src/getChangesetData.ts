@@ -30,7 +30,7 @@ export async function getChangesetData(
     }
   }`);
 
-  core.info(`Found ${prSearch.search.nodes.length} issues within range.`);
+  core.info(`Found ${prSearch.search.nodes.length} pulls within range:`);
   prSearch.search.nodes.forEach(item => {
     core.info(`- ${item.title} (${item.number}).`);
   });
