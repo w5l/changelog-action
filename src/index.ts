@@ -18,6 +18,12 @@ async function run(): Promise<void> {
       sections: [
         { title: "Features", prefixes: ["feat", "feature"] },
         { title: "Fixes", prefixes: ["fix", "fixes", "fixed", "bug"] },
+        { title: "Refactors", prefixes: ["refactor"] },
+        { title: "Performance", prefixes: ["perf"] },
+        { title: "Build", prefixes: ["build"] },
+        { title: "Continuous Integration", prefixes: ["ci"] },
+        { title: "Documentation", prefixes: ["docs"] },
+        { title: "Unit testing", prefixes: ["test"] },
       ],
       otherSectionTitle: core.getInput("other_section_title")
     }
@@ -27,7 +33,7 @@ async function run(): Promise<void> {
     const data = await core.group('Get data for changelog', () => getChangesetData(octokit, context.repo, release));
     const changelog = await core.group('Create changelog', async () => createChangelog(data, config));
     const message = await core.group('Generate changelog message', async () => generateChangelogMessage(changelog));
-    
+
     core.setOutput('message', message);
 
     if (core.getInput('update_release')?.toLowerCase() === 'true') {
