@@ -45,6 +45,7 @@ export function createChangelog(items: Issue[], config: Configuration): Changelo
  */
 function getItemsByPrefix(items: Issue[], prefixes: string[]) {
   const regex = new RegExp(`^(${prefixes.join('|')})?:?\\s+`, 'i');
+  const capitalizeFirst = (v: string) => v?.length > 1 ? v.charAt(0).toLocaleUpperCase() + v.slice(1) : v;
   return items
     // Match with allowed prefixes
     .map(item => ({
@@ -55,7 +56,7 @@ function getItemsByPrefix(items: Issue[], prefixes: string[]) {
     .filter(item => item.match)
     // Create title without filtered prefix.
     .map(item => ({
-      title: item.data.title.substring(item.match![0].length),
+      title: capitalizeFirst(item.data.title.substring(item.match![0].length)),
       item: item.data
     }));
 }
