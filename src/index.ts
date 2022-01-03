@@ -34,7 +34,7 @@ async function run(): Promise<void> {
       await core.group('Update current release', async () => {
         if (release !== null) {
           core.info(`Set body for ${release.name} to ${message}`);
-          await octokit.repos.updateRelease({
+          await octokit.rest.repos.updateRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
             release_id: release.id,
@@ -47,7 +47,7 @@ async function run(): Promise<void> {
     }
   }
   catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error instanceof Error ? error : "An error occured.");
     throw error;
   }
 }

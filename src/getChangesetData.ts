@@ -56,7 +56,7 @@ async function getDateRange(
     // want, Don't use the date of the release, it can be made at another time.
     const currentDate = new Date(release.created_at);
     // TODO: Big assumption using page size `20` but works for us.
-    const previousRelease = (await octokit.repos.listReleases({ owner: repo.owner, repo: repo.repo, per_page: 20 })).data
+    const previousRelease = (await octokit.rest.repos.listReleases({ owner: repo.owner, repo: repo.repo, per_page: 20 })).data
       // Filter all published non-prerelease done before current release.
       .filter(r => !r.draft && !r.prerelease && new Date(r.created_at) < currentDate)
       // Order by tagname and take the one with the highest tag.
@@ -73,7 +73,7 @@ async function getDateRange(
 
   core.info(`Getting latest release.`);
   try {
-    release = (await octokit.repos.getLatestRelease(repo)).data;
+    release = (await octokit.rest.repos.getLatestRelease(repo)).data;
     core.info(`No current release, using all data since previous release ${release.tag_name}.`);
     return `${addSec(release.created_at)}..*`;
   } catch {
