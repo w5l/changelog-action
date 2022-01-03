@@ -2,14 +2,17 @@
 
 Use this action to create a changelog from your GitHub pull requests.
 
-When run, the action will look for all pull request merges since the last release. Messages will be grouped by type and written to an output variable.
+When run, the action will look for all pull request merges since the last release. Messages will be grouped by type and
+written to an output variable.
 
 There are two ways to trigger the action, which decide what data to retrieve:
 
-- When triggered by a release event, all merged PRs between that release and the previous non-draft non-prerelease release are fetched.
+- When triggered by a release event, all merged PRs between that release and the previous non-draft non-prerelease
+  release are fetched.
 - Otherwise, all merged PRs since the latest release are fetched.
 
-When triggering this action on a release, it's possible to immediately update the release with the generated changelog by specifying the input option [`update_release`](#available-options).
+When triggering this action on a release, it's possible to immediately update the release with the generated changelog
+by specifying the input option [`update_release`](#available-options).
 
 ## Prefixes
 
@@ -18,8 +21,16 @@ Prefixes are case insensitive and can optionally be followed by a colon.
 
 Currently mapped prefixes:
 
-- `Feat`, `Feature`: mapped to "Feature" section.
-- `Fix`, `Fixes`, `Fixed`, `Bug`: mapped to "Fixed" section.
+| Prefix            | Section                |
+| ----------------- | ---------------------- |
+| `build`           | Build                  |
+| `ci`              | Continuous Integration |
+| `docs`            | Documentation          |
+| `feat`, `feature` | Features               |
+| `fix`, `bug`      | Fixes                  |
+| `perf`            | Performance            |
+| `refactor`        | Refactors              |
+| `test`            | Unit tests             |
 
 ## Using this action
 
@@ -47,7 +58,8 @@ The generated message is stored in the output variable named `message`.
 
 ### Using the generated message
 
-You can now reference the generated message using the `id` from the previous step. For example, using [`actions/create-release`](https://github.com/actions/create-release):
+You can now reference the generated message using the `id` from the previous step. For example, using
+[`actions/create-release`](https://github.com/actions/create-release):
 
 ```yaml
 - name: Create Release
@@ -62,5 +74,5 @@ You can now reference the generated message using the `id` from the previous ste
 
 ### Updating on release
 
-See the [`release.yml`](./.github/workflows/release.yml) for an example of how to trigger this
-action on release and automatically write the changelog to the body.
+See the [`release.yml`](./.github/workflows/release.yml) for an example of how to trigger this action on release and
+automatically write the changelog to the body.
